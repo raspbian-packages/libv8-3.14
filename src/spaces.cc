@@ -307,9 +307,12 @@ void MemoryAllocator::FreeMemory(VirtualMemory* reservation,
     size_executable_ -= size;
   }
   // Code which is part of the code-range does not have its own VirtualMemory.
-  ASSERT(!isolate_->code_range()->contains(
-      static_cast<Address>(reservation->address())));
-  ASSERT(executable == NOT_EXECUTABLE || !isolate_->code_range()->exists());
+  ASSERT(isolate_->code_range() == NULL ||
+         !isolate_->code_range()->contains(
+             static_cast<Address>(reservation->address())));
+  ASSERT(executable == NOT_EXECUTABLE ||
+         isolate_->code_range() == NULL ||
+         !isolate_->code_range()->valid());
   reservation->Release();
 }
 
@@ -327,11 +330,14 @@ void MemoryAllocator::FreeMemory(Address base,
     ASSERT(size_executable_ >= size);
     size_executable_ -= size;
   }
-  if (isolate_->code_range()->contains(static_cast<Address>(base))) {
+  if (isolate_->code_range() != NULL &&
+      isolate_->code_range()->contains(static_cast<Address>(base))) {
     ASSERT(executable == EXECUTABLE);
     isolate_->code_range()->FreeRawMemory(base, size);
   } else {
-    ASSERT(executable == NOT_EXECUTABLE || !isolate_->code_range()->exists());
+    ASSERT(executable == NOT_EXECUTABLE ||
+           isolate_->code_range() == NULL ||
+           !isolate_->code_range()->valid());
     bool result = VirtualMemory::ReleaseRegion(base, size);
     USE(result);
     ASSERT(result);
@@ -512,7 +518,7 @@ MemoryChunk* MemoryAllocator::AllocateChunk(intptr_t body_size,
 
     // Allocate executable memory either from code range or from the
     // OS.
-    if (isolate_->code_range()->exists()) {
+    if (isolate_->code_range() != NULL && isolate_->code_range()->valid()) {
       base = isolate_->code_range()->AllocateRawMemory(chunk_size, &chunk_size);
       ASSERT(IsAligned(reinterpret_cast<intptr_t>(base),
                        MemoryChunk::kAlignment));

@@ -3630,8 +3630,9 @@ MaybeObject* Heap::CreateCode(const CodeDesc& desc,
   // Initialize the object
   result->set_map_no_write_barrier(code_map());
   Code* code = Code::cast(result);
-  ASSERT(!isolate_->code_range()->exists() ||
-      isolate_->code_range()->contains(code->address()));
+  ASSERT(isolate_->code_range() == NULL ||
+         !isolate_->code_range()->valid() ||
+         isolate_->code_range()->contains(code->address()));
   code->set_instruction_size(desc.instr_size);
   code->set_relocation_info(reloc_info);
   code->set_flags(flags);
@@ -3683,8 +3684,9 @@ MaybeObject* Heap::CopyCode(Code* code) {
   CopyBlock(new_addr, old_addr, obj_size);
   // Relocate the copy.
   Code* new_code = Code::cast(result);
-  ASSERT(!isolate_->code_range()->exists() ||
-      isolate_->code_range()->contains(code->address()));
+  ASSERT(isolate_->code_range() == NULL ||
+         !isolate_->code_range()->valid() ||
+         isolate_->code_range()->contains(code->address()));
   new_code->Relocate(new_addr - old_addr);
   return new_code;
 }
@@ -3733,8 +3735,9 @@ MaybeObject* Heap::CopyCode(Code* code, Vector<byte> reloc_info) {
   memcpy(new_code->relocation_start(), reloc_info.start(), reloc_info.length());
 
   // Relocate the copy.
-  ASSERT(!isolate_->code_range()->exists() ||
-      isolate_->code_range()->contains(code->address()));
+  ASSERT(isolate_->code_range() == NULL ||
+         !isolate_->code_range()->valid() ||
+         isolate_->code_range()->contains(code->address()));
   new_code->Relocate(new_addr - old_addr);
 
 #ifdef VERIFY_HEAP

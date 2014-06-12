@@ -1120,12 +1120,15 @@ void FunctionTemplate::AddInstancePropertyAccessor(
 
 
 Local<ObjectTemplate> FunctionTemplate::InstanceTemplate() {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
-  if (IsDeadCheck(isolate, "v8::FunctionTemplate::InstanceTemplate()")
-      || EmptyCheck("v8::FunctionTemplate::InstanceTemplate()", this))
+  i::Handle<i::FunctionTemplateInfo> handle = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!handle.is_null(),
+                       "v8::FunctionTemplate::InstanceTemplate()",
+                       "Reading from empty handle")) {
     return Local<ObjectTemplate>();
+  }
+  i::Isolate* isolate = handle->GetIsolate();
   ENTER_V8(isolate);
-  if (Utils::OpenHandle(this)->instance_template()->IsUndefined()) {
+  if (handle->instance_template()->IsUndefined()) {
     Local<ObjectTemplate> templ =
         ObjectTemplate::New(v8::Handle<FunctionTemplate>(this));
     Utils::OpenHandle(this)->set_instance_template(*Utils::OpenHandle(*templ));
@@ -2683,14 +2686,14 @@ int32_t Value::Int32Value() const {
 
 bool Value::Equals(Handle<Value> that) const {
   i::Isolate* isolate = i::Isolate::Current();
-  if (IsDeadCheck(isolate, "v8::Value::Equals()")
-      || EmptyCheck("v8::Value::Equals()", this)
-      || EmptyCheck("v8::Value::Equals()", that)) {
+  i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!obj.is_null() && !that.IsEmpty(),
+                       "v8::Value::Equals()",
+                       "Reading from empty handle")) {
     return false;
   }
   LOG_API(isolate, "Equals");
   ENTER_V8(isolate);
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   i::Handle<i::Object> other = Utils::OpenHandle(*that);
   // If both obj and other are JSObjects, we'd better compare by identity
   // immediately when going into JS builtin.  The reason is Invoke
@@ -2710,13 +2713,13 @@ bool Value::Equals(Handle<Value> that) const {
 
 bool Value::StrictEquals(Handle<Value> that) const {
   i::Isolate* isolate = i::Isolate::Current();
-  if (IsDeadCheck(isolate, "v8::Value::StrictEquals()")
-      || EmptyCheck("v8::Value::StrictEquals()", this)
-      || EmptyCheck("v8::Value::StrictEquals()", that)) {
+  i::Handle<i::Object> obj = Utils::OpenHandle(this, true);
+  if (!Utils::ApiCheck(!obj.is_null() && !that.IsEmpty(),
+                       "v8::Value::StrictEquals()",
+                       "Reading from empty handle")) {
     return false;
   }
   LOG_API(isolate, "StrictEquals");
-  i::Handle<i::Object> obj = Utils::OpenHandle(this);
   i::Handle<i::Object> other = Utils::OpenHandle(*that);
   // Must check HeapNumber first, since NaN !== NaN.
   if (obj->IsHeapNumber()) {
