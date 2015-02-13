@@ -250,14 +250,14 @@ clean: $(addsuffix .clean, $(ARCHES) $(ANDROID_ARCHES)) native.clean
 OUT_MAKEFILES = $(addprefix $(OUTDIR)/Makefile.,$(ARCHES))
 $(OUT_MAKEFILES): $(GYPFILES) $(ENVFILE)
 	GYP_GENERATORS=make \
-	build/gyp/gyp --generator-output="$(OUTDIR)" build/all.gyp \
+	gyp --generator-output="$(OUTDIR)" build/all.gyp \
 	              -Ibuild/standalone.gypi --depth=. \
 	              -Dv8_target_arch=$(subst .,,$(suffix $@)) \
 	              -S.$(subst .,,$(suffix $@)) $(GYPFLAGS)
 
 $(OUTDIR)/Makefile.native: $(GYPFILES) $(ENVFILE)
 	GYP_GENERATORS=make \
-	build/gyp/gyp --generator-output="$(OUTDIR)" build/all.gyp \
+	gyp --generator-output="$(OUTDIR)" build/all.gyp \
 	              -Ibuild/standalone.gypi --depth=. -S.native $(GYPFLAGS)
 
 must-set-ANDROID_NDK_ROOT_OR_TOOLCHAIN:
