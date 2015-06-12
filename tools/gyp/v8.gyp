@@ -676,7 +676,7 @@
             ['OS=="freebsd"', {
                 'link_settings': {
                   'libraries': [
-                    '-L/usr/local/lib -lexecinfo',
+                    '-L/usr/local/lib -lpthread',
                 ]},
                 'sources': [
                   '../../src/platform-freebsd.cc',
