@@ -136,7 +136,7 @@
               'variables': {
                 'mksnapshot_flags': [
                   '--log-snapshot-positions',
-                  '--logfile', '<(INTERMEDIATE_DIR)/snapshot.log',
+                  '--logfile', '-',
                 ],
               },
               'conditions': [
