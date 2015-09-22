@@ -28,7 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import multiprocessing
+import multiprocessing.dummy as multiprocessing
 import optparse
 import os
 from os.path import join
