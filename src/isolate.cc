@@ -116,6 +116,8 @@ void ThreadLocalTop::Initialize() {
 #ifdef USE_SIMULATOR
 #ifdef V8_TARGET_ARCH_ARM
   simulator_ = Simulator::current(isolate_);
+#elif V8_TARGET_ARCH_PPC
+  simulator_ = Simulator::current(isolate_);
 #elif V8_TARGET_ARCH_MIPS
   simulator_ = Simulator::current(isolate_);
 #endif
@@ -1080,6 +1082,7 @@ bool Isolate::IsErrorObject(Handle<Object> obj) {
   return false;
 }
 
+static int fatal_exception_depth = 0;
 
 void Isolate::DoThrow(Object* exception, MessageLocation* location) {
   ASSERT(!has_pending_exception());
@@ -1149,6 +1152,20 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
         thread_local_top()->pending_message_script_ = *location->script();
         thread_local_top()->pending_message_start_pos_ = location->start_pos();
         thread_local_top()->pending_message_end_pos_ = location->end_pos();
+      }
+
+      // If the abort-on-uncaught-exception flag is specified, abort on any
+      // exception not caught by JavaScript, even when an external handler is
+      // present.  This flag is intended for use by JavaScript developers, so
+      // print a user-friendly stack trace (not an internal one).
+      if (fatal_exception_depth == 0 &&
+          FLAG_abort_on_uncaught_exception &&
+          (report_exception || can_be_caught_externally)) {
+        fatal_exception_depth++;
+        fprintf(stderr, "%s\n\nFROM\n",
+          *MessageHandler::GetLocalizedMessage(message_obj));
+        PrintCurrentStackTrace(stderr);
+        OS::Abort();
       }
     } else if (location != NULL && !location->script().is_null()) {
       // We are bootstrapping and caught an error where the location is set
@@ -1398,6 +1415,8 @@ char* Isolate::RestoreThread(char* from) {
 #ifdef USE_SIMULATOR
 #ifdef V8_TARGET_ARCH_ARM
   thread_local_top()->simulator_ = Simulator::current(this);
+#elif V8_TARGET_ARCH_PPC
+  thread_local_top()->simulator_ = Simulator::current(this);
 #elif V8_TARGET_ARCH_MIPS
   thread_local_top()->simulator_ = Simulator::current(this);
 #endif
@@ -1534,6 +1553,7 @@ Isolate::Isolate()
   thread_manager_->isolate_ = this;
 
 #if defined(V8_TARGET_ARCH_ARM) && !defined(__arm__) || \
+    defined(V8_TARGET_ARCH_PPC) && !defined(__PPC__) || \
     defined(V8_TARGET_ARCH_MIPS) && !defined(__mips__)
   simulator_initialized_ = false;
   simulator_i_cache_ = NULL;
@@ -1851,7 +1871,8 @@ bool Isolate::Init(Deserializer* des) {
 
   // Initialize other runtime facilities
 #if defined(USE_SIMULATOR)
-#if defined(V8_TARGET_ARCH_ARM) || defined(V8_TARGET_ARCH_MIPS)
+#if defined(V8_TARGET_ARCH_ARM) || defined(V8_TARGET_ARCH_MIPS) \
+  || defined(V8_TARGET_ARCH_PPC)
   Simulator::Initialize(this);
 #endif
 #endif
