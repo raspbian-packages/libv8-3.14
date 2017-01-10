@@ -723,6 +723,17 @@
                 '../../src/platform-posix.cc'
               ]},
             ],
+            ['OS=="hurd"', {
+                'link_settings': {
+                  'libraries': [
+                    '-lpthread',
+                ]},
+                'sources': [
+                  '../../src/platform-gnu.cc',
+                  '../../src/platform-posix.cc'
+                ],
+              }
+            ],
             ['OS=="win"', {
               'sources': [
                 '../../src/platform-win32.cc',
