@@ -26,7 +26,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import multiprocessing
+import multiprocessing.dummy as multiprocessing
 import os
 import threading
 import time
