@@ -143,7 +143,7 @@ bool OS::ArmCpuHasFeature(CpuFeature feature) {
       search_string = "vfp";
       break;
     case VFP3:
-      search_string = "vfpv3";
+      search_string = "vfpv3-disabled";
       break;
     case ARMv7:
       search_string = "ARMv7";
